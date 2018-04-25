@@ -43,18 +43,17 @@ class HumanPlayer:
 class ConsoleGame(Game):
     def __init__(self, player0, player1):
         if random.choice([True, False]):
-            print('First player goes first!')
+            print('You go first!')
             swap = player0
             player0 = player1
             player1 = swap
         else:
-            print('Second player goes first!')
+            print('The bot goes first!')
         super().__init__(player0, player1)
 
 player0 = BruteBot()
 player1 = HumanPlayer()
 winners = {'players': {player0.__class__.__name__: 0, player1.__class__.__name__: 0, 'none': 0}, 'turnOrder': {0: 0, 1: 0, 'none': 0}}
-playerHit10000 = False
 for i in range(1,10000): # run 10,000 games
     consoleGame = ConsoleGame(player0, player1)
     winner = consoleGame.startGame()
