@@ -1,28 +1,16 @@
 import math
 import random
 from game import Game
+from console import ConsoleGame
 
-# Brute force check all possible wins,
-#   pick the move with the best
-#   combined win conditions
-class BruteBot:
-    WIN_CONDITIONS = [
-        [0,1,2],
-        [3,4,5],
-        [6,7,8],
-        [0,3,6],
-        [1,4,7],
-        [2,5,8],
-        [0,4,8],
-        [2,4,6]
-    ]
+# Check how much of each win condition
+#   I occupy, and pick the one
+#   that looks the best
+class OccupyBot:
     def getMove(self, board, whichPlayerAmI):
-
         winBoard = self.createWinBoard(board, whichPlayerAmI)
         enemiesWinBoard = self.createWinBoard(board, 1 if whichPlayerAmI == 0 else 0)
         compositeWinBoard = [False if x is False else round(x + 0.5 * y,1) for x, y in zip(winBoard, enemiesWinBoard)]
-
-
 
         maxScore = max(compositeWinBoard)
         if maxScore > 0 :
@@ -32,45 +20,35 @@ class BruteBot:
             bestMoveNumerals = [i for i, j in enumerate(compositeWinBoard) if j is not False]
 
         # print('win')
-        # self.visualizeWinBoard(winBoard)
+        # ConsoleGame.printBoard(winBoard)
         # print('loss')
-        # self.visualizeWinBoard(enemiesWinBoard)
+        # ConsoleGame.printBoard(enemiesWinBoard)
         # print('composite')
-        # self.visualizeWinBoard(compositeWinBoard)
+        # ConsoleGame.printBoard(compositeWinBoard)
 
         # print('     Score: ', maxScore)
-        # print('     Moves: ', [Game.numeralToPosition(x) for x in bestMoveNumerals])
+        # print('     Moves: ', bestMoveNumerals)
 
-        return Game.numeralToPosition(random.choice(bestMoveNumerals))
-
-    def visualizeWinBoard(self, winBoard):
-        pretty = [[0,0,0],[0,0,0],[0,0,0]]
-        for i, winCredit in enumerate(winBoard):
-            p = Game.numeralToPosition(i)
-            pretty[p[0]][p[1]] = False if winCredit is False else winCredit
-        print('  ', pretty[0])
-        print('  ', pretty[1])
-        print('  ', pretty[2])
+        return random.choice(bestMoveNumerals)
 
     def createWinBoard(self, board, whichPlayer):
         winBoard = [0] * 9
-        for winCondition in self.WIN_CONDITIONS:
+        for winCondition in Game.WIN_CONDITIONS:
             testResult = self.testWinCondition(winCondition, board, whichPlayer)
-            for boardNumeral in winCondition:
-                if Game.isMoveValid(board, Game.numeralToPosition(boardNumeral)):
+            for boardIndex in winCondition:
+                if Game.isMoveValid(board, boardIndex):
                     if testResult is not False:
-                            winBoard[boardNumeral] += testResult
+                            winBoard[boardIndex] += testResult
                 else:
-                    winBoard[boardNumeral] = False
+                    winBoard[boardIndex] = False
         return winBoard
 
 
     #returns an integer with how many moves already in place or false if not available
     def testWinCondition(self, winCondition, board, whichPlayerAmI):
         points = 0.0
-        for boardNumeral in winCondition:
-            position = Game.numeralToPosition(boardNumeral)
-            occupant = board[position[0]][position[1]]
+        for boardIndex in winCondition:
+            occupant = board[boardIndex]
             if occupant is not None and occupant != whichPlayerAmI:
                 return False # player occupies this spot. Can't win
             elif occupant == whichPlayerAmI:
