@@ -1,7 +1,6 @@
 import math
 import random
 from game import Game
-from console import ConsoleGame
 
 # Check how much of each win condition
 #   I occupy, and pick the one
@@ -20,11 +19,11 @@ class OccupyBot:
             bestMoveNumerals = [i for i, j in enumerate(compositeWinBoard) if j is not False]
 
         # print('win')
-        # ConsoleGame.printBoard(winBoard)
+        # Game.printBoard(winBoard)
         # print('loss')
-        # ConsoleGame.printBoard(enemiesWinBoard)
+        # Game.printBoard(enemiesWinBoard)
         # print('composite')
-        # ConsoleGame.printBoard(compositeWinBoard)
+        # Game.printBoard(compositeWinBoard)
 
         # print('     Score: ', maxScore)
         # print('     Moves: ', bestMoveNumerals)

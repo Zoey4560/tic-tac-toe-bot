@@ -16,7 +16,7 @@ class TreeBot:
         # print(board)
         # self.visualizeBoard(winningMoveCount)
 
-        return Game.numeralToPosition(random.choice(bestMoveNumerals))
+        return random.choice(bestMoveNumerals)
 
     def visualizeBoard(self, board):
         pretty = [[0,0,0],[0,0,0],[0,0,0]]
@@ -36,16 +36,15 @@ class TreeBot:
             return 0
         else:
             winningArray = []
-            for i, row in enumerate(board):
-                for j, move in enumerate(row):
-                    if move is None:
-                        nextBoard = copy.deepcopy(board)
-                        nextBoard[i][j] = whichPlayersTurnIsIt
-                        otherPlayer = 0 if whichPlayersTurnIsIt is 1 else 1
-                        nextBoard = self.getWinningMoves(nextBoard, whichPlayerAmI, otherPlayer, False, movesMade + 1)
-                        winningArray.append(nextBoard)
-                    else:
-                        winningArray.append(False)
+            for i, move in enumerate(board):
+                if move is None:
+                    nextBoard = copy.deepcopy(board)
+                    nextBoard[i] = whichPlayersTurnIsIt
+                    otherPlayer = 0 if whichPlayersTurnIsIt is 1 else 1
+                    nextBoard = self.getWinningMoves(nextBoard, whichPlayerAmI, otherPlayer, False, movesMade + 1)
+                    winningArray.append(nextBoard)
+                else:
+                    winningArray.append(False)
             if isTopLevel:
                 resultArray = []
                 for x in winningArray:

@@ -3,31 +3,37 @@ from occupyBot import OccupyBot
 from randomBot import RandomBot
 from treeBot import TreeBot
 import random
+import math
 
 class HumanPlayer:
     def getMove(self, board, whichPlayerAmI):
         print('It\'s your turn, player '+str(whichPlayerAmI))
-        ConsoleGame.printBoard(board)
+        Game.printBoard(board)
         print('Play a move with your numpad')
         print('                     7, 8, 9')
         print('                     4, 5, 6')
         print('                     1, 2, 3')
         moveInput = None
         while moveInput is None:
+            # input = None
             try:
-                i = int(input('What\'s your move? '))
+                inp = input('What\'s your move? ')
+                i = int(inp)
                 if (0 < i < 10):
                     moveInput = i
                 else:
                     raise
             except:
+                if inp == 'exit':
+                    exit()
                 print('That\'s not a valid move!')
 
 
-        return numpadToBoardIndex(moveInput)
+        return self.numpadToBoardIndex(moveInput)
 
+    @staticmethod
     def numpadToBoardIndex(n):
-        return 3*(2 - math.floor((n-1)/2)) + (n-1)%3
+        return 3*(2 - math.floor((n-1)/3)) + (n-1)%3
 
 class ConsoleGame(Game):
     def __init__(self, player0, player1):
@@ -40,21 +46,12 @@ class ConsoleGame(Game):
         print('The match is ', p0name, ' and ', p1name)
         super().__init__(player0, player1)
 
-    @staticmethod
-    def printBoard(board):
-        string = ''
-        for i, space in enumerate(board):
-            string += str(item)+' ' if item is not None else '_ '
-            if i % 3 == 2:
-                print(string)
-                string = ''
 
-
-winners = {'players': {'TreeBot': 0, 'OccupyBot': 0, 'RandomBot': 0, 'none': 0}, 'turnOrder': {0: 0, 1: 0, 'none': 0}}
+winners = {'players': {'TreeBot': 0, 'OccupyBot': 0, 'RandomBot': 0, 'HumanPlayer': 0, 'none': 0}, 'turnOrder': {0: 0, 1: 0, 'none': 0}}
 for i in range(1,10000): # run 10,000 games
     # player0 = random.choice([TreeBot(), OccupyBot(), RandomBot()])
     # player1 = random.choice([TreeBot(), OccupyBot(), RandomBot()])
-    player0 = TreeBot()
+    player0 = HumanPlayer()
     player1 = OccupyBot()
     consoleGame = ConsoleGame(player0, player1)
     winner = consoleGame.runGame()
@@ -68,5 +65,5 @@ for i in range(1,10000): # run 10,000 games
         winners['players']['none'] += 1
         winners['turnOrder']['none'] += 1
     print(winners)
-    ConsoleGame.printBoard(consoleGame.board)
+    Game.printBoard(consoleGame.board)
     #input('play again?')

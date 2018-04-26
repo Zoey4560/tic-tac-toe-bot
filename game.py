@@ -57,16 +57,16 @@ class Game:
 
     @staticmethod
     def whoWon(board):
-        for winCondition in WIN_CONDITIONS:
+        for winCondition in Game.WIN_CONDITIONS:
             winner = Game.evalWinCondition(board, winCondition)
             if winner is not None:
                 return winner
 
     @staticmethod
     def evalWinCondition(board, winCondition):
-        if board[winCondition[0]] is not None && \
-            board[winCondition[0]] == board[winCondition[1]] && \
-            board[winCondition[0]] == board[winCondition[2]] && \
+        if board[winCondition[0]] is not None and \
+            board[winCondition[0]] == board[winCondition[1]] and \
+            board[winCondition[0]] == board[winCondition[2]]:
             return board[winCondition[0]]
         return None
 
@@ -75,3 +75,12 @@ class Game:
         if not (0 <= boardIndex <= 8):
             return False
         return board[boardIndex] is None
+
+    @staticmethod
+    def printBoard(board):
+        string = ''
+        for i, space in enumerate(board):
+            string += str(space)+' ' if space is not None else '_ '
+            if i % 3 == 2:
+                print(string)
+                string = ''
