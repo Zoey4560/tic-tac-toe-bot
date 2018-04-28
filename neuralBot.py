@@ -3,6 +3,12 @@ from functools import reduce
 
 class NeuralBot:
     def __init__(self):
+        # assuming this is a good structure
+        # inputs of 8 spaces: do I own, does enemy own
+        # hidden layer of 8 nodes, 1 for each winning condition?
+        # output of preference for move
+        #   filters out invalid moves,
+        #   so no incentive to not make illegal moves
         self.net = NeuralNetwork([18, 8, 9])
 
     def getMove(self, board, whichPlayerAmI):
@@ -29,8 +35,8 @@ class NeuralNetwork:
 
 class NeuralLayer:
     def __init__(self, numInputs, numNeurons):
-        self.weights = np.random.random((numInputs,numNeurons)) - 1
-        self.bias = np.random.random(numNeurons) - 1
+        self.weights = np.random.random((numInputs,numNeurons))
+        self.bias = np.random.random(numNeurons)
 
     def fire(self, inputs):
         return self.sigmoid(inputs @ self.weights * self.bias)
