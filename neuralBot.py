@@ -7,8 +7,8 @@ class NeuralBot:
         # 16 inputs, for 8 spaces: do I own, does enemy own
         # hidden layer of 8 nodes, 1 for each winning condition?
         # output of preference for move
-        #   filters out invalid moves,
-        #   so no incentive to not make illegal moves
+        #   filters out illegal moves,
+        #   so no incentive for legal moves
         self.net = NeuralNetwork([18, 8, 9])
 
     def getMove(self, board, whichPlayerAmI):
