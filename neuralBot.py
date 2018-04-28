@@ -35,8 +35,8 @@ class NeuralNetwork:
 
 class NeuralLayer:
     def __init__(self, numInputs, numNeurons):
-        self.weights = np.random.random((numInputs,numNeurons))
-        self.bias = np.random.random(numNeurons)
+        self.weights = np.random.random((numInputs,numNeurons)) * 2 - 1
+        self.bias = np.random.random(numNeurons) * 2 - 1
 
     def fire(self, inputs):
         return self.sigmoid(inputs @ self.weights * self.bias)
