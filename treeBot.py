@@ -2,58 +2,74 @@ import random
 import copy
 from game import Game
 
+tree = {
+    0: {},
+    1: {}
+}
+
 # Search the tree and back trace victory
 class TreeBot:
-    def getMove(self, board, whichPlayerAmI):
-        winningMoveCount = self.getWinningMoves(board, whichPlayerAmI, whichPlayerAmI, True)
-        maxScore = max(winningMoveCount)
-        if maxScore > 0:
-            bestMoveNumerals = [i for i, j in enumerate(winningMoveCount) if j == maxScore]
-        else:
-            #nothing but stalemates left. Python's max() returns False for [False, 0.0] so pick non-false/valid moves
-            bestMoveNumerals = [i for i, j in enumerate(winningMoveCount) if j is not False]
+    @classmethod
+    def computeTree(Class, player=None):
+        board = [
+            None, None, None,
+            None, None, None,
+            None, None, None]
+        Class.scoreMoves(board, player, 0)
 
-        # print(board)
-        # self.visualizeBoard(winningMoveCount)
+    def getMove(this, board, whichPlayerAmI):
+        if not tree[whichPlayerAmI]:
+            this.computeTree(whichPlayerAmI)
+        moveScores = tree[whichPlayerAmI][this.hashBoard(board)]
+        legalMoveScores = [x for i, x in enumerate(moveScores) if board[i] is None]
 
-        return random.choice(bestMoveNumerals)
+        maxScore = max(legalMoveScores)
+        bestMoves = [i for i, j in enumerate(moveScores) if j == maxScore and board[i] is None]
 
-    def visualizeBoard(self, board):
-        pretty = [[0,0,0],[0,0,0],[0,0,0]]
-        for i, count in enumerate(board):
-            p = Game.numeralToPosition(i)
-            pretty[p[0]][p[1]] = count
-        print('  ', pretty[0])
-        print('  ', pretty[1])
-        print('  ', pretty[2])
+        # Game.printBoard(board)
+        # cleanBoard = [False if board[i] is not None else j for i, j in enumerate(moveScores)]
+        # Game.printBoard(cleanBoard)
+        # print(bestMoves)
 
-    def getWinningMoves(self, board, whichPlayerAmI, whichPlayersTurnIsIt, isTopLevel, movesMade=0):
+        return random.choice(bestMoves)
+
+    @classmethod
+    def hashBoard(Class, board):
+        return ''.join(map(lambda x: '_' if x is None else str(x), board))
+
+    @classmethod
+    def scoreMoves(Class, board, whichPlayerAmI, whichPlayersTurnIsIt):
         if Game.whoWon(board) == whichPlayerAmI:
-            return True
+            return 1
         elif Game.whoWon(board) == (0 if whichPlayerAmI == 1 else 1):
             return -1
         elif not Game.spacesAreOpen(board):
             return 0
         else:
-            winningArray = []
-            for i, move in enumerate(board):
-                if move is None:
-                    nextBoard = copy.deepcopy(board)
-                    nextBoard[i] = whichPlayersTurnIsIt
-                    otherPlayer = 0 if whichPlayersTurnIsIt is 1 else 1
-                    nextBoard = self.getWinningMoves(nextBoard, whichPlayerAmI, otherPlayer, False, movesMade + 1)
-                    winningArray.append(nextBoard)
-                else:
-                    winningArray.append(False)
-            if isTopLevel:
-                resultArray = []
-                for x in winningArray:
-                    if x is False:
-                        resultArray.append(False)
-                    elif x is True:
-                        resultArray.append(100) # it's a winning move!
-                    else:
-                        resultArray.append(x)
-                return resultArray
+            if Class.hashBoard(board) in tree[whichPlayerAmI]:
+                nextMoves = tree[whichPlayerAmI][Class.hashBoard(board)]
             else:
-                return sum(winningArray) / movesMade
+                nextMoves = Class.descendTree(board, whichPlayerAmI, whichPlayersTurnIsIt)
+                tree[whichPlayerAmI][Class.hashBoard(board)] = nextMoves
+
+            if whichPlayerAmI == whichPlayersTurnIsIt:
+                return max(nextMoves)
+            else:
+                    #discounted future value of non-perfect play
+                    # 10% average remaining moves score
+                nonP = 0.1 * float(sum(nextMoves)) / len([x for i, x in enumerate(nextMoves) if board[i] is None])
+                return round(min(nextMoves) + nonP, 16)
+
+    @classmethod
+    def descendTree(Class, board, whichPlayerAmI, whichPlayersTurnIsIt):
+        nextMoves = []
+        for i, move in enumerate(board):
+            if move is None:
+                nextBoard = copy.deepcopy(board)
+                nextBoard[i] = whichPlayersTurnIsIt
+                nextPlayer = 0 if whichPlayersTurnIsIt is 1 else 1
+                moveValue = Class.scoreMoves(nextBoard, whichPlayerAmI, nextPlayer)
+                nextMoves.append(moveValue)
+            else:
+                nextMoves.append(0)
+        return nextMoves

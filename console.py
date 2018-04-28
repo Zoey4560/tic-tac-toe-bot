@@ -46,18 +46,25 @@ class ConsoleGame(Game):
         print('The match is ', p0name, ' and ', p1name)
         super().__init__(player0, player1)
 
+    def doTurn(self):
+        super().doTurn()
+        # Game.printBoard(self.board)
+        # input('next?')
 
-winners = {'players': {'TreeBot': 0, 'OccupyBot': 0, 'RandomBot': 0, 'HumanPlayer': 0, 'none': 0}, 'turnOrder': {0: 0, 1: 0, 'none': 0}}
+
+winners = {'players': {'none': 0}, 'turnOrder': {0: 0, 1: 0, 'none': 0}}
 for i in range(1,10000): # run 10,000 games
     # player0 = random.choice([TreeBot(), OccupyBot(), RandomBot()])
     # player1 = random.choice([TreeBot(), OccupyBot(), RandomBot()])
-    player0 = HumanPlayer()
-    player1 = OccupyBot()
+    player0 = TreeBot()
+    player1 = HumanPlayer()
     consoleGame = ConsoleGame(player0, player1)
     winner = consoleGame.runGame()
     if winner is not None:
         winnerName = consoleGame.players[winner].__class__.__name__
         print('The winner is player '+ str(winner)+', '+winnerName)
+        if winnerName not in winners['players']:
+            winners['players'][winnerName] = 0
         winners['players'][winnerName] += 1
         winners['turnOrder'][winner] += 1
     else:
@@ -66,4 +73,4 @@ for i in range(1,10000): # run 10,000 games
         winners['turnOrder']['none'] += 1
     print(winners)
     Game.printBoard(consoleGame.board)
-    #input('play again?')
+    # input('play again?')

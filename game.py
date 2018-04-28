@@ -72,9 +72,12 @@ class Game:
 
     @staticmethod
     def isMoveValid(board, boardIndex):
-        if not (0 <= boardIndex <= 8):
+        try:
+            if not (0 <= boardIndex <= 8):
+                return False
+            return board[boardIndex] is None
+        except:
             return False
-        return board[boardIndex] is None
 
     @staticmethod
     def printBoard(board):
