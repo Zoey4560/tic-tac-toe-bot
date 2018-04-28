@@ -4,7 +4,7 @@ from functools import reduce
 class NeuralBot:
     def __init__(self):
         # assuming this is a good structure
-        # inputs of 8 spaces: do I own, does enemy own
+        # 16 inputs, for 8 spaces: do I own, does enemy own
         # hidden layer of 8 nodes, 1 for each winning condition?
         # output of preference for move
         #   filters out invalid moves,
