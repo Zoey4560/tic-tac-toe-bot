@@ -39,7 +39,7 @@ class NeuralLayer:
         self.bias = np.random.random(numNeurons) * 2 - 1
 
     def fire(self, inputs):
-        return self.sigmoid(inputs @ self.weights * self.bias)
+        return self.sigmoid(inputs @ self.weights + self.bias)
 
     @staticmethod
     def sigmoid(x):
