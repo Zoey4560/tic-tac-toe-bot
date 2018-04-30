@@ -2,6 +2,8 @@ from game import Game
 from occupyBot import OccupyBot
 from randomBot import RandomBot
 from treeBot import TreeBot
+from neuralBot import NeuralBot
+from neuralTrainer import NeuralTrainer
 import random
 import math
 
@@ -44,33 +46,31 @@ class ConsoleGame(Game):
         p0name = player0.__class__.__name__
         p1name = player1.__class__.__name__
         print('The match is ', p0name, ' and ', p1name)
-        super().__init__(player0, player1)
+        super().__init__(player0, player1, False)
 
     def doTurn(self):
         super().doTurn()
         # Game.printBoard(self.board)
         # input('next?')
 
-
-winners = {'players': {'none': 0}, 'turnOrder': {0: 0, 1: 0, 'none': 0}}
+bestNeuralBot = NeuralTrainer.getBestBot()
+winners = {'players': {'none': 0}}
 for i in range(1,10000): # run 10,000 games
-    # player0 = random.choice([TreeBot(), OccupyBot(), RandomBot()])
-    # player1 = random.choice([TreeBot(), OccupyBot(), RandomBot()])
-    player0 = TreeBot()
-    player1 = HumanPlayer()
+    # player0 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot])
+    # player1 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot])
+    player0 = HumanPlayer()
+    player1 = bestNeuralBot
     consoleGame = ConsoleGame(player0, player1)
     winner = consoleGame.runGame()
     if winner is not None:
-        winnerName = consoleGame.players[winner].__class__.__name__
+        winnerName = winner.__class__.__name__
         print('The winner is player '+ str(winner)+', '+winnerName)
         if winnerName not in winners['players']:
             winners['players'][winnerName] = 0
         winners['players'][winnerName] += 1
-        winners['turnOrder'][winner] += 1
     else:
         print('Stalemate!')
         winners['players']['none'] += 1
-        winners['turnOrder']['none'] += 1
-    print(winners)
+    print(winners['players'])
     Game.printBoard(consoleGame.board)
     # input('play again?')

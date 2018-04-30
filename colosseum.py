@@ -3,41 +3,35 @@ from occupyBot import OccupyBot
 from randomBot import RandomBot
 from treeBot import TreeBot
 from neuralBot import NeuralBot
+from neuralTrainer import NeuralTrainer
 import random
 import math
 
 
 #Where bots come to duke it out
-bots = []
-scores = []
-for i in range(100):
-    bot = NeuralBot()
-    bots.append(bot)
-    scores.append({'win':0, 'loss':0, 'draw':0})
+trainer = NeuralTrainer(100, 10000, 0.1, 0.4)
+trainer.trainBots()
+bestBot = trainer.getBestBot()
+lastBot = trainer.loadBot('bestBot')
+trainer.saveBot(lastBot, 'lastBot')
 
-for t in range(1):
-    for i, bot0 in enumerate(bots):
-        for j, bot1 in enumerate(bots):
-            game = Game(bot0, bot1)
-            winner = game.runGame()
-            if winner is not None:
-                winnerIndex = i if winner is 0 else j
-                loserIndex = i if winner is 1 else j
-                scores[winnerIndex]['win'] += 1
-                scores[loserIndex]['loss'] += 1
-            else:
-                for x in [i, j]:
-                    scores[x]['draw'] += 1
-    print(scores)
+for enemy in [lastBot, RandomBot(), OccupyBot(), TreeBot()]:
+    vsEnemy = {'w':0, 'l':0, 'd':0}
+    for z in range(100):
+        game = Game(bestBot, enemy, True)
+        winner = game.runGame()
+        if winner is None:
+            vsEnemy['d'] += 1
+        elif winner is bestBot:
+            vsEnemy['w'] += 1
+        else:
+            vsEnemy['l'] += 1
+    print('vs:', enemy.__class__.__name__)
+    print('wins', vsEnemy['w'])
+    print('losses', vsEnemy['l'])
+    print('draws', vsEnemy['d'])
 
-bestBot = None
-bestWins = 0
-for i, score in enumerate(scores):
-    if score['win'] > bestWins:
-        bestBot = bots[i]
-        bestWins = score['win']
-print(bestWins)
-for z in range(30):
-    game = Game(bestBot, RandomBot())
-    winner = game.runGame()
-    print('The winner is', winner)
+    if enemy is lastBot and (vsEnemy['w'] - vsEnemy['l']) > 0:
+        # We bested lastBot! We're the true bestBot!
+        trainer.saveBot(bestBot, 'bestBot')
+        print('New bestBot!')

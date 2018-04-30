@@ -9,7 +9,9 @@ class NeuralBot:
         # output of preference for move
         #   filters out illegal moves,
         #   so no incentive for legal moves
-        self.net = NeuralNetwork([18, 8, 9])
+
+        # self.net = NeuralNetwork([18, 8, 9])
+        self.net = NeuralNetwork([18, 16, 8, 9])
 
     def getMove(self, board, whichPlayerAmI):
         inputList = []
@@ -20,7 +22,7 @@ class NeuralBot:
         result = self.net.fire(inputs)
         maxResult = max([x for i, x in enumerate(result) if board[i] is None])
         for move, r in enumerate(result):
-            if r == maxResult:
+            if r == maxResult and board[move] is None:
                 return move
 
 class NeuralNetwork:

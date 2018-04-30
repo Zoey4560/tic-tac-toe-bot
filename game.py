@@ -1,12 +1,17 @@
 import math
+import random
 
 class Game:
-    def __init__(self, player0, player1):
+    def __init__(self, player0, player1, randomSwapPlayers=False):
         self.board = [
             None, None, None,
             None, None, None,
             None, None, None
         ]
+        if randomSwapPlayers and random.choice([True, False]):
+            swap = player0
+            player0 = player1
+            player1 = swap
         self.players = [player0, player1]
         self.winner = None
 
@@ -26,7 +31,7 @@ class Game:
     def runGame(self):
         while self.whoWon(self.board) is None and self.spacesAreOpen(self.board):
             self.doTurn()
-        return self.whoWon(self.board)
+        return None if self.whoWon(self.board) is None else self.players[self.whoWon(self.board)]
 
     def doTurn(self):
         boardIndex = self.currentPlayer().getMove(self.board, self.currentPlayerIndex())
