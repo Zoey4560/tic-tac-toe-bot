@@ -17,10 +17,10 @@ class TreeBot:
             None, None, None]
         Class.scoreMoves(board, player, 0)
 
-    def getMove(this, board, whichPlayerAmI):
+    def getMove(self, board, whichPlayerAmI):
         if not tree[whichPlayerAmI]:
-            this.computeTree(whichPlayerAmI)
-        moveScores = tree[whichPlayerAmI][this.hashBoard(board)]
+            self.computeTree(whichPlayerAmI)
+        moveScores = tree[whichPlayerAmI][self.hashBoard(board)]
         legalMoveScores = [x for i, x in enumerate(moveScores) if board[i] is None]
 
         maxScore = max(legalMoveScores)
@@ -30,11 +30,10 @@ class TreeBot:
         # cleanBoard = [False if board[i] is not None else j for i, j in enumerate(moveScores)]
         # Game.printBoard(cleanBoard)
         # print(bestMoves)
-
         return random.choice(bestMoves)
 
-    @classmethod
-    def hashBoard(Class, board):
+    @staticmethod
+    def hashBoard(board):
         return ''.join(map(lambda x: '_' if x is None else str(x), board))
 
     @classmethod
@@ -53,12 +52,14 @@ class TreeBot:
                 tree[whichPlayerAmI][Class.hashBoard(board)] = nextMoves
 
             if whichPlayerAmI == whichPlayersTurnIsIt:
-                return max(nextMoves)
+                legalMoves = [x for i,x in enumerate(nextMoves) if board[i] is None]
+                return max(legalMoves)
             else:
-                    #discounted future value of non-perfect play
-                    # 10% average remaining moves score
-                nonP = 0.1 * float(sum(nextMoves)) / len([x for i, x in enumerate(nextMoves) if board[i] is None])
-                return round(min(nextMoves) + nonP, 16)
+                legalMoves = [x for i,x in enumerate(nextMoves) if board[i] is None]
+                bestMove = min(legalMoves)
+                legalMoves.remove(bestMove)
+                nonPerfectPlay = 0.1 * float(sum(legalMoves)) / (len(legalMoves) or 1)
+                return round(bestMove + nonPerfectPlay, 16)
 
     @classmethod
     def descendTree(Class, board, whichPlayerAmI, whichPlayersTurnIsIt):

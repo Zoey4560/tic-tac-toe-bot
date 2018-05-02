@@ -45,7 +45,7 @@ class ConsoleGame(Game):
             player1 = swap
         p0name = player0.__class__.__name__
         p1name = player1.__class__.__name__
-        print('The match is ', p0name, ' and ', p1name)
+        # print('The match is ', p0name, ' and ', p1name)
         super().__init__(player0, player1, False)
 
     def doTurn(self):
@@ -53,24 +53,42 @@ class ConsoleGame(Game):
         # Game.printBoard(self.board)
         # input('next?')
 
+    def replayGame(self):
+        print('--')
+        self.setupGame()
+        for move in self.moveHistory:
+            print(self.currentPlayer().__class__.__name__, self.currentPlayerIndex())
+            try:
+                print(self.currentPlayer().debug(self.board, self.currentPlayerIndex()))
+            except Exception as e:
+                pass # print(e)
+            self.makeMove(move)
+            self.nextPlayer()
+            self.printBoard(self.board)
+
 bestNeuralBot = NeuralTrainer.getBestBot()
-winners = {'players': {'none': 0}}
+winners = {'none': 0}
 for i in range(1,10000): # run 10,000 games
     # player0 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot])
     # player1 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot])
-    player0 = HumanPlayer()
-    player1 = bestNeuralBot
+    player0 = RandomBot()
+    player1 = TreeBot()
     consoleGame = ConsoleGame(player0, player1)
     winner = consoleGame.runGame()
     if winner is not None:
         winnerName = winner.__class__.__name__
-        print('The winner is player '+ str(winner)+', '+winnerName)
-        if winnerName not in winners['players']:
-            winners['players'][winnerName] = 0
-        winners['players'][winnerName] += 1
+        # print('The winner is player '+ str(winner)+', '+winnerName)
+        if winnerName == 'RandomBot':
+            print('Random Won')
+            consoleGame.replayGame()
+            input('next?')
+        if winnerName not in winners:
+            winners[winnerName] = 0
+        winners[winnerName] += 1
     else:
-        print('Stalemate!')
-        winners['players']['none'] += 1
-    print(winners['players'])
-    Game.printBoard(consoleGame.board)
+        # print('Stalemate!')
+        winners['none'] += 1
+    # Game.printBoard(consoleGame.board)
+print(winners)
+
     # input('play again?')

@@ -3,19 +3,11 @@ import random
 
 class Game:
     def __init__(self, player0, player1, randomSwapPlayers=False):
-        self.board = [
-            None, None, None,
-            None, None, None,
-            None, None, None
-        ]
-        if randomSwapPlayers and random.choice([True, False]):
-            swap = player0
-            player0 = player1
-            player1 = swap
         self.players = [player0, player1]
-        self.winner = None
-
-        self.isTurnPlayer0 = True
+        if randomSwapPlayers and random.choice([True, False]):
+            self.players.reverse()
+        self.moveHistory = []
+        self.setupGame()
 
     WIN_CONDITIONS = [
         [0,1,2], #rows
@@ -28,6 +20,10 @@ class Game:
         [2,4,6]
     ]
 
+    def setupGame(self):
+        self.board = [None] * 9
+        self.isTurnPlayer0 = True
+
     def runGame(self):
         while self.whoWon(self.board) is None and self.spacesAreOpen(self.board):
             self.doTurn()
@@ -37,6 +33,7 @@ class Game:
         boardIndex = self.currentPlayer().getMove(self.board, self.currentPlayerIndex())
         if self.isMoveValid(self.board, boardIndex):
             self.makeMove(boardIndex)
+            self.moveHistory.append(boardIndex)
             self.nextPlayer()
         else:
             print('Illegal move!', boardIndex)
