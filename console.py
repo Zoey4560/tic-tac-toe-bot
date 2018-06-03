@@ -3,7 +3,8 @@ from occupyBot import OccupyBot
 from randomBot import RandomBot
 from treeBot import TreeBot
 from neuralBot import NeuralBot
-from neuralTrainer import NeuralTrainer
+from geneticTrainer import GeneticTrainer
+from qTableBot import QTableBot
 import random
 import math
 
@@ -28,6 +29,9 @@ class HumanPlayer:
             except:
                 if inp == 'exit':
                     exit()
+                if inp == 'thermonuclearwar':
+                    print('How about we work up to chess first?')
+                    exit()
                 print('That\'s not a valid move!')
 
 
@@ -48,10 +52,17 @@ class ConsoleGame(Game):
         # print('The match is ', p0name, ' and ', p1name)
         super().__init__(player0, player1, False)
 
-    def doTurn(self):
-        super().doTurn()
-        # Game.printBoard(self.board)
-        # input('next?')
+    # def doTurn(self):
+    #     Game.printBoard(self.board)
+    #     print(self.currentPlayer().__class__.__name__, self.currentPlayerIndex())
+    #     super().doTurn()
+    #     input('next?')
+    # def setupGame(self):
+    #     self.board = [None, 1, 1,
+    #                     0, None, None,
+    #                     0, None, None]
+    #     self.isTurnPlayer0 = True
+
 
     def replayGame(self):
         print('--')
@@ -66,29 +77,35 @@ class ConsoleGame(Game):
             self.nextPlayer()
             self.printBoard(self.board)
 
-bestNeuralBot = NeuralTrainer.getBestBot()
+bestNeuralBot = GeneticTrainer.getBestBot()
 winners = {'none': 0}
-for i in range(1,10000): # run 10,000 games
-    # player0 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot])
-    # player1 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot])
-    player0 = RandomBot()
-    player1 = TreeBot()
-    consoleGame = ConsoleGame(player0, player1)
+# player0 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot])
+# player1 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot])
+player0 = QTableBot()
+player1 = HumanPlayer()
+
+player0.playSelf()
+
+for i in range(0,10000): # run 1,000 games
+    consoleGame = ConsoleGame(player0, RandomBot())
     winner = consoleGame.runGame()
     if winner is not None:
         winnerName = winner.__class__.__name__
-        # print('The winner is player '+ str(winner)+', '+winnerName)
-        if winnerName == 'RandomBot':
-            print('Random Won')
-            consoleGame.replayGame()
-            input('next?')
+        print('The winner is player '+ str(winner)+', '+winnerName)
+        # if winnerName == 'RandomBot':
+        #     print('Random Won')
+        #     consoleGame.replayGame()
+        #     input('next?')
         if winnerName not in winners:
             winners[winnerName] = 0
         winners[winnerName] += 1
     else:
-        # print('Stalemate!')
+        print('Stalemate!')
         winners['none'] += 1
+    qWins = winners['QTableBot'] if 'QTableBot' in winners else 0
+    print(i,qWins/(i+1), winners)
     # Game.printBoard(consoleGame.board)
 print(winners)
+print(player0.qTable[0])
 
     # input('play again?')

@@ -8,7 +8,7 @@ from game import Game
 from neuralBot import NeuralBot
 from randomBot import RandomBot
 
-class NeuralTrainer:
+class GeneticTrainer:
     def __init__(self, populationSize, generations, mutationRate=0.05, survivalRate=0.2):
         self.bots = []
         self.populationSize = populationSize

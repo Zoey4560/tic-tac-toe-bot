@@ -3,13 +3,13 @@ from occupyBot import OccupyBot
 from randomBot import RandomBot
 from treeBot import TreeBot
 from neuralBot import NeuralBot
-from neuralTrainer import NeuralTrainer
+from geneticTrainer import GeneticTrainer
 import random
 import math
 
 
 #Where bots come to duke it out
-trainer = NeuralTrainer(100, 10000, 0.1, 0.4)
+trainer = GeneticTrainer(100, 10000, 0.1, 0.4)
 trainer.trainBots()
 bestBot = trainer.getBestBot()
 lastBot = trainer.loadBot('bestBot')
