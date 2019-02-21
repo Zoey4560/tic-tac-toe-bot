@@ -6,15 +6,15 @@ from game import Game
 
 class QNetworkBot:
     def __init__(self):
-        self.minibatchSize = 5
-        self.trainingEpochs = 10
+        self.minibatchSize = 32
+        self.trainingEpochs = 2
         self.discountFactor = 0.5
         self.maxMemorySize = 1000
         self.replayMemory = []
 
         self.net = tf.keras.models.Sequential()
         self.net.add(tf.keras.layers.Dense(8, input_shape=(18,) ))
-        self.net.add(tf.keras.layers.Dense(9))
+        self.net.add(tf.keras.layers.Dense(9, activation='sigmoid'))
         self.net.compile(optimizer='sgd', loss='mse')
 
     def fire(self, board):
@@ -29,11 +29,17 @@ class QNetworkBot:
         return inputList
 
     def getMove(self, board, whichPlayerAmI):
+        if random.random() > min(0.9, len(self.replayMemory)/self.maxMemorySize):
+            while True:
+                randomPosition = random.randint(0,8)
+                if Game.isMoveValid(board, randomPosition):
+                    return randomPosition
         q = self.fire(board)
         maxResult = max([x for i, x in enumerate(q) if board[i] is None])
         for move, r in enumerate(q):
             if r == maxResult and board[move] is None:
                 return move
+        raise Exception('NO MOVE!')
 
     def reportGame(self, game):
         winner = game.whoWon(game.board)
@@ -59,7 +65,7 @@ class QNetworkBot:
             whichPlayerAmI = 1 - whichPlayerAmI # alternate turns
 
     def trainMiniBatch(self):
-        minibatch = random.sample(self.replayMemory, self.minibatchSize)
+        minibatch = random.sample(self.replayMemory, min(len(self.replayMemory), self.minibatchSize))
         inputs = []
         desiredOutputs = []
         for replay in minibatch:
@@ -71,7 +77,6 @@ class QNetworkBot:
             existingQ = self.fire(replay.state)
             existingQ[replay.action] += q
             desiredOutputs.append(existingQ)
-        print(inputs)
         inputs = np.array(inputs)
         desiredOutputs = np.array(desiredOutputs)
         if desiredOutputs.size != 0:
