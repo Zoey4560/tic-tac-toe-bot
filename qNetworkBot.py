@@ -7,7 +7,7 @@ from game import Game
 class QNetworkBot:
     def __init__(self):
         self.minibatchSize = 5
-        self.traningEpochs = 10
+        self.trainingEpochs = 10
         self.discountFactor = 0.5
         self.maxMemorySize = 1000
         self.replayMemory = []
@@ -18,18 +18,22 @@ class QNetworkBot:
         self.net.compile(optimizer='sgd', loss='mse')
 
     def fire(self, board):
+        return self.net.predict(np.array([self.boardToInputs(board)]))[0]
+
+    @staticmethod
+    def boardToInputs(board):
         inputList = []
         for space in board: #code even, odd inputs to each player
             inputList.append(1 if 0 is space else 0)
             inputList.append(1 if 1 is space else 0)
-        inputs = np.array([inputList])
-        return self.net.predict(inputs)[0]
+        return inputList
 
     def getMove(self, board, whichPlayerAmI):
-        while True:
-            randomPosition = random.randint(0,8)
-            if Game.isMoveValid(board, randomPosition):
-                return randomPosition
+        q = self.fire(board)
+        maxResult = max([x for i, x in enumerate(q) if board[i] is None])
+        for move, r in enumerate(q):
+            if r == maxResult and board[move] is None:
+                return move
 
     def reportGame(self, game):
         winner = game.whoWon(game.board)
@@ -57,21 +61,28 @@ class QNetworkBot:
     def trainMiniBatch(self):
         minibatch = random.sample(self.replayMemory, self.minibatchSize)
         inputs = []
-        desired_outputs = []
+        desiredOutputs = []
         for replay in minibatch:
-            inputs.append(replay.state)
+            inputs.append(self.boardToInputs(replay.state))
             # q = r + γQ∗(s', a')
             r = replay.reward
-            q = self.fire(replay.nextState)
-            print('r,q: ',r,q, r+q)
-            input()
-            
+            maxQ = max(self.fire(replay.nextState))
+            q = r + self.discountFactor * maxQ
+            existingQ = self.fire(replay.state)
+            existingQ[replay.action] += q
+            desiredOutputs.append(existingQ)
+        print(inputs)
+        inputs = np.array(inputs)
+        desiredOutputs = np.array(desiredOutputs)
+        if desiredOutputs.size != 0:
+            self.net.fit(inputs, desiredOutputs, epochs=self.trainingEpochs)
 
 
     def storeReplay(self, board, move, whichPlayerAmI, reward):
+        currentBoard = board[:]
         nextBoard = board[:]
         nextBoard[move] = whichPlayerAmI
-        self.replayMemory.append(Replay(board, move, reward, nextBoard))
+        self.replayMemory.append(Replay(currentBoard, move, reward, nextBoard))
         if len(self.replayMemory) > self.maxMemorySize:
             self.replayMemory.pop(0)
 
@@ -81,3 +92,6 @@ class Replay:
         self.action = action
         self.reward = reward
         self.nextState = nextState
+
+    def pr(self):
+        print(self.state, self.action, self.reward, self.nextState)
