@@ -54,10 +54,8 @@ class QTableBot:
             self.updateQTable(board, move, whichPlayerAmI, reward)
             # reward = 0 #only count reward for first move? let minmax propogate the rest
             reward = -1 * self.discountFactor * reward # invert for minmax
-            whichPlayerAmI = 1 - whichPlayerAmI # is this right?
-        # or never invert, play all the way through with same reward? then re-run for opponents moves
-        # I think inversion is needed, since I only care about a score for the user that has agency.
-        #       score for move where whichPlayerAmI can't make move is useless.
+            whichPlayerAmI = 1 - whichPlayerAmI # alternate turns
+
     def updateQTable(self, board, move, whichPlayerAmI, reward):
         self.visitNoveltyTable(board, move)
         nextBoard = board[:]

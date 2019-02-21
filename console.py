@@ -5,8 +5,10 @@ from treeBot import TreeBot
 from neuralBot import NeuralBot
 from geneticTrainer import GeneticTrainer
 from qTableBot import QTableBot
+from qNetworkBot import QNetworkBot
 import random
 import math
+import matplotlib.pyplot as plt
 
 class HumanPlayer:
     def getMove(self, board, whichPlayerAmI):
@@ -58,10 +60,10 @@ class ConsoleGame(Game):
     #     super().doTurn()
     #     input('next?')
     # def setupGame(self):
-    #     self.board = [None, 1, 1,
-    #                     0, None, None,
-    #                     0, None, None]
-    #     self.isTurnPlayer0 = True
+        # self.board = [None, 1, 1,
+        #                 0, None, None,
+        #                 0, None, None]
+        # self.isTurnPlayer0 = True
 
 
     def replayGame(self):
@@ -78,34 +80,54 @@ class ConsoleGame(Game):
             self.printBoard(self.board)
 
 bestNeuralBot = GeneticTrainer.getBestBot()
-winners = {'none': 0}
-# player0 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot])
-# player1 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot])
-player0 = QTableBot()
-player1 = HumanPlayer()
 
-player0.playSelf()
+for n in range(0,1): # run n sessions
+    winners = {'none': 0}
+    gameScoreCoefs = []
+    # player0 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot, QTableBot()])
+    # player1 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot, QTableBot()])
+    player0 = QNetworkBot()
+    player1 = OccupyBot()
+    # player0.playSelf()
+    # input()
 
-for i in range(0,10000): # run 1,000 games
-    consoleGame = ConsoleGame(player0, RandomBot())
-    winner = consoleGame.runGame()
-    if winner is not None:
-        winnerName = winner.__class__.__name__
-        print('The winner is player '+ str(winner)+', '+winnerName)
-        # if winnerName == 'RandomBot':
-        #     print('Random Won')
-        #     consoleGame.replayGame()
-        #     input('next?')
-        if winnerName not in winners:
-            winners[winnerName] = 0
-        winners[winnerName] += 1
-    else:
-        print('Stalemate!')
-        winners['none'] += 1
-    qWins = winners['QTableBot'] if 'QTableBot' in winners else 0
-    print(i,qWins/(i+1), winners)
-    # Game.printBoard(consoleGame.board)
-print(winners)
-print(player0.qTable[0])
+    for i in range(0,10000): # run i games
+        consoleGame = ConsoleGame(player0, player1)
+        winner = consoleGame.runGame()
+        if winner is not None:
+            winnerName = winner.__class__.__name__
+            # print('The winner is player '+ str(winner)+', '+winnerName)
+            # if winnerName == 'RandomBot':
+            #     print('Random Won')
+            #     consoleGame.replayGame()
+            #     input('next?')
+            if winnerName not in winners:
+                winners[winnerName] = 0
+            winners[winnerName] += 1
+
+
+        else:
+            # print('Stalemate!')
+            winners['none'] += 1
+        for p in [player0, player1]:
+            if hasattr(p, 'reportGame'):
+                p.reportGame(consoleGame)
+        p0name = player0.__class__.__name__
+        p0wins = winners[p0name] if p0name in winners else 0
+        winningCoef = (p0wins + winners['none']*.5)/(i+1)
+        print(n, i, winningCoef, winners)
+        gameScoreCoefs.append(winningCoef)
+        # print(gameScoreCoefs)
+        # input()
+
+
+        # input()
+        # Game.printBoard(consoleGame.board)
+    print(winners)
+
+    plt.plot(gameScoreCoefs)
+plt.legend()
+plt.show()
+
 
     # input('play again?')
