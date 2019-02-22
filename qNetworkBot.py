@@ -6,10 +6,10 @@ from game import Game
 
 class QNetworkBot:
     def __init__(self):
-        self.minibatchSize = 32
+        self.minibatchSize = 128
         self.trainingEpochs = 2
         self.discountFactor = 0.5
-        self.maxMemorySize = 1000
+        self.maxMemorySize = 10000
         self.replayMemory = []
 
         self.net = tf.keras.models.Sequential()
@@ -29,7 +29,7 @@ class QNetworkBot:
         return inputList
 
     def getMove(self, board, whichPlayerAmI):
-        if random.random() > min(0.9, len(self.replayMemory)/self.maxMemorySize):
+        if random.random() > min(0.95, len(self.replayMemory)/self.maxMemorySize):
             while True:
                 randomPosition = random.randint(0,8)
                 if Game.isMoveValid(board, randomPosition):
@@ -53,7 +53,7 @@ class QNetworkBot:
         self.reportReward(game, winner, 1)
 
     def reportDraw(self, game):
-        self.reportReward(game, 0, 0) # player 0 always plays last move in a draw
+        self.reportReward(game, 0, 0.5) # player 0 always plays last move in a draw. Give partial value (better than loss)
 
     def reportReward(self, game, whichPlayerAmI, reward):
         moves = game.moveHistory
