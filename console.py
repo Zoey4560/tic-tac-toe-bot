@@ -81,17 +81,35 @@ class ConsoleGame(Game):
 
 bestNeuralBot = GeneticTrainer.getBestBot()
 
-for n in range(0,1): # run n sessions
+class QTestNet(QNetworkBot):
+    @staticmethod
+    def boardToInputs(board, _):
+        inputList = []
+        for space in board: #code even, odd inputs to each player
+            inputList.append(1 if 0 is space else 0)
+            inputList.append(1 if 1 is space else 0)
+        return inputList
+
+    def qSolve(self, replay):
+        # q = r + γQ∗(s', a')
+        r = replay.reward
+        if replay.isTerminal:
+            return r
+        else:
+            maxQ = max(self.fire(replay.nextState, None)) # this is never a game state that we get to act on. storage for future expected reward
+            return r - self.discountFactor * maxQ
+
+for n in range(10): # run n sessions
     winners = {'none': 0}
     gameScoreCoefs = []
     # player0 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot, QTableBot()])
     # player1 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot, QTableBot()])
     player0 = QNetworkBot()
-    player1 = OccupyBot()
+    player1 = QTestNet()
     # player0.playSelf()
     # input()
 
-    for i in range(0,10000): # run i games
+    for i in range(10000): # run i games
         consoleGame = ConsoleGame(player0, player1)
         winner = consoleGame.runGame()
         if winner is not None:
