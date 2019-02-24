@@ -6,8 +6,8 @@ from game import Game
 
 class QNetworkBot:
     def __init__(self):
-        self.minibatchSize = 16
-        self.discountFactor = 0.8
+        self.minibatchSize = 32
+        self.discountFactor = 0.9
         self.maxMemorySize = 1000
         self.replayMemory = []
 
@@ -15,7 +15,7 @@ class QNetworkBot:
         self.net.add(tf.keras.layers.Dense(32, input_shape=(18,), activation='sigmoid'))
         self.net.add(tf.keras.layers.Dense(12, activation='relu'))
         self.net.add(tf.keras.layers.Dense(9, activation='sigmoid'))
-        self.net.compile(optimizer='sgd', loss='mse')
+        self.net.compile(optimizer=tf.keras.optimizers.SGD(1), loss='mse')
 
     def fire(self, board, whichPlayerAmI):
         return self.net.predict(np.array([self.boardToInputs(board, whichPlayerAmI)]))[0]
@@ -29,7 +29,7 @@ class QNetworkBot:
         return inputList
 
     def getMove(self, board, whichPlayerAmI):
-        if random.random() > min(0.95, len(self.replayMemory)/self.maxMemorySize):
+        if random.random() > min(0.9, len(self.replayMemory)/self.maxMemorySize):
             while True:
                 randomPosition = random.randint(0,8)
                 if Game.isMoveValid(board, randomPosition):
@@ -87,9 +87,11 @@ class QNetworkBot:
         if replay.isTerminal:
             return r
         else:
-            maxQ = max(self.fire(replay.nextState, replay.playerIndicator)) # this is never a game state that we get to act on. storage for future expected reward
-            oponentMaxQ =  max(self.fire(replay.nextState, 1 - replay.playerIndicator)) # best oponent can do with state we give them
-            return r + self.discountFactor * (maxQ - oponentMaxQ)
+            Q = self.fire(replay.nextState, replay.playerIndicator) # this is never a game state that we get to act on. storage for future expected reward
+            maxQ = max([q for i,q in enumerate(Q) if replay.state[i] is None])
+            opponentQ =  self.fire(replay.nextState, 1 - replay.playerIndicator) # best opponent can do with state we give them
+            opponentMaxQ = max([q for i,q in enumerate(opponentQ) if replay.state[i] is None])
+            return r + self.discountFactor * (maxQ - opponentMaxQ)
 
     def storeReplay(self, board, move, whichPlayerAmI, reward, isTerminal):
         currentBoard = board[:]

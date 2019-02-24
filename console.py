@@ -99,7 +99,16 @@ class QTestNet(QNetworkBot):
             maxQ = max(self.fire(replay.nextState, None)) # this is never a game state that we get to act on. storage for future expected reward
             return r - self.discountFactor * maxQ
 
-for n in range(10): # run n sessions
+# trainedQNet = QNetworkBot()
+# r = RandomBot()
+# print('pre-training')
+# for i in range(10000):
+#     consoleGame = ConsoleGame(trainedQNet, r)
+#     w = consoleGame.runGame()
+#     trainedQNet.reportGame(consoleGame)
+#     print(i, w.__class__.__name__)
+
+for n in range(4): # run n sessions
     winners = {'none': 0}
     gameScoreCoefs = []
     # player0 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot, QTableBot()])
