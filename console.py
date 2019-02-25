@@ -100,25 +100,24 @@ class QTestNet(QNetworkBot):
             return r - self.discountFactor * maxQ
 
 # trainedQNet = QNetworkBot()
-# r = RandomBot()
 # print('pre-training')
 # for i in range(10000):
-#     consoleGame = ConsoleGame(trainedQNet, r)
+#     consoleGame = ConsoleGame(trainedQNet, trainedQNet)
 #     w = consoleGame.runGame()
 #     trainedQNet.reportGame(consoleGame)
 #     print(i, w.__class__.__name__)
 
-for n in range(4): # run n sessions
+for n in range(10): # run n sessions
     winners = {'none': 0}
     gameScoreCoefs = []
     # player0 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot, QTableBot()])
     # player1 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot, QTableBot()])
     player0 = QNetworkBot()
-    player1 = QTestNet()
+    player1 = RandomBot()
     # player0.playSelf()
     # input()
 
-    for i in range(10000): # run i games
+    for i in range(100000): # run i games
         consoleGame = ConsoleGame(player0, player1)
         winner = consoleGame.runGame()
         if winner is not None:

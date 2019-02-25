@@ -12,8 +12,9 @@ class QNetworkBot:
         self.replayMemory = []
 
         self.net = tf.keras.models.Sequential()
-        self.net.add(tf.keras.layers.Dense(32, input_shape=(18,), activation='sigmoid'))
-        self.net.add(tf.keras.layers.Dense(12, activation='relu'))
+        self.net.add(tf.keras.layers.Dense(36, input_shape=(18,)))
+        self.net.add(tf.keras.layers.Dense(18, activation='relu'))
+        # self.net.add(tf.keras.layers.GaussianNoise(1))
         self.net.add(tf.keras.layers.Dense(9, activation='sigmoid'))
         self.net.compile(optimizer=tf.keras.optimizers.SGD(1), loss='mse')
 
