@@ -13,9 +13,9 @@ class QNetworkBot:
 
         self.net = tf.keras.models.Sequential()
         self.net.add(tf.keras.layers.Dense(36, input_shape=(18,)))
-        self.net.add(tf.keras.layers.Dense(18, activation='relu'))
+        self.net.add(tf.keras.layers.Dense(18, activation='sigmoid'))
         # self.net.add(tf.keras.layers.GaussianNoise(1))
-        self.net.add(tf.keras.layers.Dense(9, activation='sigmoid'))
+        self.net.add(tf.keras.layers.Dense(9))
         self.net.compile(optimizer=tf.keras.optimizers.SGD(1), loss='mse')
 
     def fire(self, board, whichPlayerAmI):
@@ -36,6 +36,7 @@ class QNetworkBot:
                 if Game.isMoveValid(board, randomPosition):
                     return randomPosition
         q = self.fire(board, whichPlayerAmI)
+        print(q)
         maxResult = max([x for i, x in enumerate(q) if board[i] is None])
         for move, r in enumerate(q):
             if r == maxResult and board[move] is None:
