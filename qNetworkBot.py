@@ -36,7 +36,6 @@ class QNetworkBot:
                 if Game.isMoveValid(board, randomPosition):
                     return randomPosition
         q = self.fire(board, whichPlayerAmI)
-        print(q)
         maxResult = max([x for i, x in enumerate(q) if board[i] is None])
         for move, r in enumerate(q):
             if r == maxResult and board[move] is None:
