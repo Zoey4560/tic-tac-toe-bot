@@ -99,25 +99,36 @@ class QTestNet(QNetworkBot):
             maxQ = max(self.fire(replay.nextState, None)) # this is never a game state that we get to act on. storage for future expected reward
             return r - self.discountFactor * maxQ
 
+class R2(RandomBot):
+    pass
+
 # trainedQNet = QNetworkBot()
 # print('pre-training')
-# for i in range(10000):
+# for i in range(1000):
 #     consoleGame = ConsoleGame(trainedQNet, trainedQNet)
 #     w = consoleGame.runGame()
 #     trainedQNet.reportGame(consoleGame)
 #     print(i, w.__class__.__name__)
 
-for n in range(10): # run n sessions
+for n in range(18): # run n sessions
     winners = {'none': 0}
     gameScoreCoefs = []
+    winCoefs = []
     # player0 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot, QTableBot()])
     # player1 = random.choice([TreeBot(), OccupyBot(), RandomBot(), bestNeuralBot, QTableBot()])
-    player0 = QNetworkBot()
-    player1 = RandomBot()
-    # player0.playSelf()
-    # input()
+    if n % 2:
+        player0 = QNetworkBot()
+        player1 = RandomBot()
+    else:
+        player0 = RandomBot()
+        player1 = QTestNet()
 
-    for i in range(100000): # run i games
+    if n % 3 == 0: #mix in random, to see noise amount
+        player0 = RandomBot()
+        player1 = R2()
+
+    for i in range(10000): # run i games
+        p0name = player0.__class__.__name__
         consoleGame = ConsoleGame(player0, player1)
         winner = consoleGame.runGame()
         if winner is not None:
@@ -130,19 +141,17 @@ for n in range(10): # run n sessions
             if winnerName not in winners:
                 winners[winnerName] = 0
             winners[winnerName] += 1
-
-
+            winCoefs.append(1 if winnerName == p0name else 0)
         else:
             # print('Stalemate!')
             winners['none'] += 1
+            winCoefs.append(0.5)
         for p in [player0, player1]:
             if hasattr(p, 'reportGame'):
                 p.reportGame(consoleGame)
-        p0name = player0.__class__.__name__
-        p0wins = winners[p0name] if p0name in winners else 0
-        winningCoef = (p0wins + winners['none']*.5)/(i+1)
-        print(n, i, winningCoef, winners)
-        gameScoreCoefs.append(winningCoef)
+        c = sum(winCoefs[-500:]) / min(len(winCoefs), 500) # winning coef over last 500 games
+        print(n, i, c, winners)
+        gameScoreCoefs.append(c)
         # print(gameScoreCoefs)
         # input()
 
