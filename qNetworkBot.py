@@ -10,32 +10,34 @@ class QNetworkBot:
         self.discountFactor = 0.9
         self.maxMemorySize = 1000
         self.replayMemory = []
+        self.buildNet()
 
+    def buildNet(self):
         self.net = tf.keras.models.Sequential()
         self.net.add(tf.keras.layers.Dense(36, input_shape=(18,)))
         self.net.add(tf.keras.layers.Dense(18, activation='sigmoid'))
         # self.net.add(tf.keras.layers.GaussianNoise(1))
         self.net.add(tf.keras.layers.Dense(9))
-        self.net.compile(optimizer=tf.keras.optimizers.SGD(1), loss='mse')
+        self.net.compile(optimizer=tf.keras.optimizers.SGD(0.5), loss='mse')
 
-    def fire(self, board, whichPlayerAmI):
-        return self.net.predict(np.array([self.boardToInputs(board, whichPlayerAmI)]))[0]
+    def fire(self, board):
+        return self.net.predict(np.array([self.boardToInputs(board)]))[0]
 
     @staticmethod
-    def boardToInputs(board, whichPlayerAmI):
+    def boardToInputs(board):
         inputList = []
-        for space in board:
-            inputList.append(1 if whichPlayerAmI is space else 0)
-            inputList.append(1 if 1 - whichPlayerAmI is space else 0)
+        for space in board: #code even, odd inputs to each player
+            inputList.append(1 if 0 is space else 0)
+            inputList.append(1 if 1 is space else 0)
         return inputList
 
     def getMove(self, board, whichPlayerAmI):
-        if random.random() > min(0.9, len(self.replayMemory)/self.maxMemorySize):
+        if random.random() > min(0.95, len(self.replayMemory)/self.maxMemorySize):
             while True:
                 randomPosition = random.randint(0,8)
                 if Game.isMoveValid(board, randomPosition):
                     return randomPosition
-        q = self.fire(board, whichPlayerAmI)
+        q = self.fire(board)
         maxResult = max([x for i, x in enumerate(q) if board[i] is None])
         for move, r in enumerate(q):
             if r == maxResult and board[move] is None:
@@ -72,9 +74,9 @@ class QNetworkBot:
         inputs = []
         desiredOutputs = []
         for replay in minibatch:
-            inputs.append(self.boardToInputs(replay.state, replay.playerIndicator))
+            inputs.append(self.boardToInputs(replay.state))
             q = self.qSolve(replay)
-            existingQ = self.fire(replay.state, replay.playerIndicator)
+            existingQ = self.fire(replay.state)
             existingQ[replay.action] += q
             desiredOutputs.append(existingQ)
         inputs = np.array(inputs)
@@ -88,11 +90,8 @@ class QNetworkBot:
         if replay.isTerminal:
             return r
         else:
-            Q = self.fire(replay.nextState, replay.playerIndicator) # this is never a game state that we get to act on. storage for future expected reward
-            maxQ = max([q for i,q in enumerate(Q) if replay.state[i] is None])
-            opponentQ =  self.fire(replay.nextState, 1 - replay.playerIndicator) # best opponent can do with state we give them
-            opponentMaxQ = max([q for i,q in enumerate(opponentQ) if replay.state[i] is None])
-            return r + self.discountFactor * (maxQ - opponentMaxQ)
+            maxQ = max(self.fire(replay.nextState))
+            return r - self.discountFactor * maxQ # opponent gets to take maxQ. minus for min-max
 
     def storeReplay(self, board, move, whichPlayerAmI, reward, isTerminal):
         currentBoard = board[:]

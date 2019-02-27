@@ -8,7 +8,9 @@ from qTableBot import QTableBot
 from qNetworkBot import QNetworkBot
 import random
 import math
+import time
 import matplotlib.pyplot as plt
+import tensorflow as tf
 
 class HumanPlayer:
     def getMove(self, board, whichPlayerAmI):
@@ -82,22 +84,13 @@ class ConsoleGame(Game):
 bestNeuralBot = GeneticTrainer.getBestBot()
 
 class QTestNet(QNetworkBot):
-    @staticmethod
-    def boardToInputs(board, _):
-        inputList = []
-        for space in board: #code even, odd inputs to each player
-            inputList.append(1 if 0 is space else 0)
-            inputList.append(1 if 1 is space else 0)
-        return inputList
-
-    def qSolve(self, replay):
-        # q = r + γQ∗(s', a')
-        r = replay.reward
-        if replay.isTerminal:
-            return r
-        else:
-            maxQ = max(self.fire(replay.nextState, None)) # this is never a game state that we get to act on. storage for future expected reward
-            return r - self.discountFactor * maxQ
+    def buildNet(self):
+        self.net = tf.keras.models.Sequential()
+        self.net.add(tf.keras.layers.Dense(144, input_shape=(18,)))
+        self.net.add(tf.keras.layers.Dense(288, activation='relu'))
+        self.net.add(tf.keras.layers.Dense(18, activation='sigmoid'))
+        self.net.add(tf.keras.layers.Dense(9))
+        self.net.compile(optimizer=tf.keras.optimizers.SGD(0.5), loss='mse')
 
 class R2(RandomBot):
     pass
@@ -109,8 +102,8 @@ class R2(RandomBot):
 #     w = consoleGame.runGame()
 #     trainedQNet.reportGame(consoleGame)
 #     print(i, w.__class__.__name__)
-
-for n in range(18): # run n sessions
+startTime = time.time()
+for n in range(20): # run n sessions
     winners = {'none': 0}
     gameScoreCoefs = []
     winCoefs = []
@@ -119,16 +112,18 @@ for n in range(18): # run n sessions
     if n % 2:
         player0 = QNetworkBot()
         player1 = RandomBot()
+        color = 'r'
     else:
-        player0 = RandomBot()
-        player1 = QTestNet()
+        player0 = QTestNet()
+        player1 = RandomBot()
+        color = 'b'
 
-    if n % 3 == 0: #mix in random, to see noise amount
-        player0 = RandomBot()
-        player1 = R2()
+    # if n % 3 == 0: #mix in random, to see noise amount
+    #     player0 = RandomBot()
+    #     player1 = R2()
 
-    for i in range(10000): # run i games
-        p0name = player0.__class__.__name__
+    p0name = player0.__class__.__name__
+    for i in range(3000): # run i games
         consoleGame = ConsoleGame(player0, player1)
         winner = consoleGame.runGame()
         if winner is not None:
@@ -141,27 +136,26 @@ for n in range(18): # run n sessions
             if winnerName not in winners:
                 winners[winnerName] = 0
             winners[winnerName] += 1
-            winCoefs.append(1 if winnerName == p0name else 0)
+            winCoefs.append(1 if winnerName == p0name else -1)
         else:
             # print('Stalemate!')
             winners['none'] += 1
-            winCoefs.append(0.5)
+            winCoefs.append(0)
         for p in [player0, player1]:
             if hasattr(p, 'reportGame'):
                 p.reportGame(consoleGame)
         c = sum(winCoefs[-500:]) / min(len(winCoefs), 500) # winning coef over last 500 games
         print(n, i, c, winners)
         gameScoreCoefs.append(c)
-        # print(gameScoreCoefs)
-        # input()
 
 
-        # input()
         # Game.printBoard(consoleGame.board)
+        # input()
     print(winners)
-
-    plt.plot(gameScoreCoefs)
-plt.legend()
+    plt.plot(gameScoreCoefs, color)
+print('runtime:', time.time() - startTime)
+plt.grid(True)
+plt.figlegend()
 plt.show()
 
 
