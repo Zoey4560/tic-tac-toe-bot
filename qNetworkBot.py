@@ -1,5 +1,4 @@
 import random
-import tensorflow
 import numpy as np
 import tensorflow as tf
 from game import Game
@@ -72,26 +71,23 @@ class QNetworkBot:
     def trainMiniBatch(self):
         minibatch = random.sample(self.replayMemory, min(len(self.replayMemory), self.minibatchSize))
         inputs = []
-        desiredOutputs = []
+        nextInputs = []
+        actions = []
+        rewards = []
         for replay in minibatch:
             inputs.append(self.boardToInputs(replay.state))
-            q = self.qSolve(replay)
-            existingQ = self.fire(replay.state)
-            existingQ[replay.action] += q
-            desiredOutputs.append(existingQ)
-        inputs = np.array(inputs)
-        desiredOutputs = np.array(desiredOutputs)
-        if desiredOutputs.size != 0:
-            self.net.train_on_batch(inputs, desiredOutputs)
-
-    def qSolve(self, replay):
-        # q = r + γQ∗(s', a')
-        r = replay.reward
-        if replay.isTerminal:
-            return r
-        else:
-            maxQ = max(self.fire(replay.nextState))
-            return r - self.discountFactor * maxQ # opponent gets to take maxQ. minus for min-max
+            nextInputs.append(self.boardToInputs(replay.nextState))
+            actions.append(replay.action)
+            rewards.append(replay.reward if replay.isTerminal else None)
+        outputs = self.net.predict(np.array(inputs))
+        nextOutputs = self.net.predict(np.array(nextInputs))
+        for i, o in enumerate(outputs):
+            r = rewards[i]
+            if r is None:
+                r = -1 * self.discountFactor * max(nextOutputs[i])
+            o[actions[i]] = r
+        if outputs.size != 0:
+            self.net.train_on_batch(np.array(inputs), outputs)
 
     def storeReplay(self, board, move, whichPlayerAmI, reward, isTerminal):
         currentBoard = board[:]
