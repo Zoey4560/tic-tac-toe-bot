@@ -6,6 +6,7 @@ from neuralBot import NeuralBot
 from geneticTrainer import GeneticTrainer
 from qTableBot import QTableBot
 from qNetworkBot import QNetworkBot
+from reinforcementBot import ReinforcementBot
 import random
 import math
 import time
