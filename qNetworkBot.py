@@ -5,15 +5,19 @@ from game import Game
 
 class QNetworkBot:
     def __init__(self):
-        self.minibatchSize = 32
-        self.discountFactor = 0.9
-        self.maxMemorySize = 1000
+        self.minibatchSize = 1000
+        self.discountFactor = 0.5
+        self.maxMemorySize = 10000
         self.replayMemory = []
         self.buildNet()
 
     def buildNet(self):
         self.net = tf.keras.models.Sequential()
         self.net.add(tf.keras.layers.Dense(36, input_shape=(18,)))
+        self.net.add(tf.keras.layers.Dense(36, activation='relu'))
+        self.net.add(tf.keras.layers.Dense(36, activation='relu'))
+        self.net.add(tf.keras.layers.Dense(36, activation='relu'))
+        self.net.add(tf.keras.layers.Dense(36, activation='relu'))
         self.net.add(tf.keras.layers.Dense(18, activation='sigmoid'))
         # self.net.add(tf.keras.layers.GaussianNoise(1))
         self.net.add(tf.keras.layers.Dense(9))
@@ -86,8 +90,9 @@ class QNetworkBot:
             if r is None:
                 r = -1 * self.discountFactor * max(nextOutputs[i])
             o[actions[i]] = r
+        inputs = np.array(inputs)
         if outputs.size != 0:
-            self.net.train_on_batch(np.array(inputs), outputs)
+            self.net.train_on_batch(inputs, outputs)
 
     def storeReplay(self, board, move, whichPlayerAmI, reward, isTerminal):
         currentBoard = board[:]
@@ -107,4 +112,4 @@ class Replay:
         self.isTerminal = isTerminal
 
     def pr(self):
-        print(self.state, self.action, self.reward, self.nextState, isTerminal)
+        print(self.state, self.action, self.reward, self.nextState, self.isTerminal)

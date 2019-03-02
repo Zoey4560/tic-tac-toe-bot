@@ -7,7 +7,7 @@ class ReinforcementBot:
     def __init__(self):
         self.discountFactor = 0.9
         self.buildNet()
-        self.observeGames(1000, 100)
+        self.observeGames(10000, 100)
 
     def buildNet(self):
         self.net = tf.keras.models.Sequential()
@@ -41,14 +41,14 @@ class ReinforcementBot:
                 #None here lets us tell between `0` as:
                 # "game ended in draw", and
                 # "game still going, no reward--take -1 * max(q')"
-                self.fire(board)
         for qEpochI in range(qEpochs):
             print(qEpochI, 'qEpoch')
             outputs = self.net.predict(np.array(states))
+            nextOutputs = self.net.predict(np.array(nextStates))
             for i, o in enumerate(outputs):
                 r = rewards[i]
                 if r is None:
-                    r = -1 * self.discountFactor * max(nextStates[i])
+                    r = -1 * self.discountFactor * max(nextOutputs[i])
                 o[actions[i]] = r
                 # np.array for acts in place
             self.net.fit(np.array(states), outputs, epochs=1)

@@ -12,6 +12,7 @@ import math
 import time
 import matplotlib.pyplot as plt
 import tensorflow as tf
+import numpy as np
 
 class HumanPlayer:
     def getMove(self, board, whichPlayerAmI):
@@ -93,6 +94,34 @@ class QTestNet(QNetworkBot):
         self.net.add(tf.keras.layers.Dense(9))
         self.net.compile(optimizer=tf.keras.optimizers.SGD(0.5), loss='mse')
 
+    # def trainMiniBatch(self):
+    #     minibatch = random.sample(self.replayMemory, min(len(self.replayMemory), self.minibatchSize))
+    #     inputs = []
+    #     desiredOutputs = []
+    #     for replay in minibatch:
+    #         inputs.append(self.boardToInputs(replay.state))
+    #         q = self.qSolve(replay)
+    #         existingQ = self.fire(replay.state)
+    #         existingQ[replay.action] = q #THIS MOTHER EFFER
+    #         desiredOutputs.append(existingQ)
+    #     inputs = np.array(inputs)
+    #     desiredOutputs = np.array(desiredOutputs)
+    #     if desiredOutputs.size != 0:
+    #         # print('b:', inputs, desiredOutputs)
+    #         self.net.train_on_batch(inputs, desiredOutputs)
+    #
+    #
+    # def qSolve(self, replay):
+    #     # q = r + γQ∗(s', a')
+    #     r = replay.reward
+    #     if replay.isTerminal:
+    #         return r
+    #     else:
+    #         maxQ = max(self.fire(replay.nextState))
+    #         return r - self.discountFactor * maxQ # opponent gets to take maxQ. minus for min-max
+
+
+
 class R2(RandomBot):
     pass
 
@@ -104,7 +133,7 @@ class R2(RandomBot):
 #     trainedQNet.reportGame(consoleGame)
 #     print(i, w.__class__.__name__)
 startTime = time.time()
-for n in range(20): # run n sessions
+for n in range(10): # run n sessions
     winners = {'none': 0}
     gameScoreCoefs = []
     winCoefs = []
@@ -119,12 +148,21 @@ for n in range(20): # run n sessions
         player1 = RandomBot()
         color = 'b'
 
+    #standard
+    # runtime: 293.54698872566223
+    # points: 0.4
+    #refactor
+    # player0 = QNetworkBot()
+    # player1 = RandomBot()
+    # color = 'r'
+
+
     # if n % 3 == 0: #mix in random, to see noise amount
     #     player0 = RandomBot()
     #     player1 = R2()
 
     p0name = player0.__class__.__name__
-    for i in range(3000): # run i games
+    for i in range(200000): # run i games
         consoleGame = ConsoleGame(player0, player1)
         winner = consoleGame.runGame()
         if winner is not None:
